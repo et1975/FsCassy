@@ -1,0 +1,26 @@
+redirects: on
+framework: >=net45
+
+group Main
+    source https://www.nuget.org/api/v2
+
+    nuget FSharp.Core redirects: force
+    nuget CassandraCSharpDriver
+
+
+group Tests
+    source https://nuget.org/api/v2
+
+    nuget Nunit 2.6.4
+    nuget Nunit.Runners 2.6.4
+    nuget Unquote
+
+
+group Build
+  source https://nuget.org/api/v2
+  
+  nuget SourceLink.Fake
+  nuget FAKE
+  nuget FSharp.Formatting
+
+  github fsharp/FAKE modules/Octokit/Octokit.fsx
