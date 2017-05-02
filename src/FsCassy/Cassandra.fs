@@ -73,7 +73,7 @@ module Interpreter =
     open FsCassy
 
     [<Struct>]
-    type InterpretationState<'t> = 
+    type internal InterpretationState<'t> = 
         | Table of table:Table<'t>
         | Query of query:CqlQuery<'t>
         | Statement of Cql
@@ -86,7 +86,7 @@ module Interpreter =
         | Query query -> Some query
         | _ -> None
 
-    let execute mkTable (statement:Statement<'t,Cassandra.ConsistencyLevel,'r>) : 'r =
+    let execute mkTable (statement:Statement<'t,'r>) : 'r =
         let table : Table<'t> = mkTable()
         let mapper = table.GetSession() |> Mapper
         let rec recurse = function
@@ -182,6 +182,3 @@ module Interpreter =
 
         recurse (statement, Table table)
 
-
-type Interpreter =
-    abstract member Interpret<'t,'r> : Statement<'t,Cassandra.ConsistencyLevel,'r> -> 'r

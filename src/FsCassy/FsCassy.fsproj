@@ -16,6 +16,7 @@
     <Optimize>false</Optimize>
     <Tailcalls>false</Tailcalls>
     <OutputPath>..\..\build_output\</OutputPath>
+    <DocumentationFile>..\..\build_output\FsCassy.xml</DocumentationFile>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
   </PropertyGroup>
@@ -25,6 +26,7 @@
     <Tailcalls>true</Tailcalls>
     <OutputPath>..\..\build_output\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
+    <DocumentationFile>..\..\build_output\FsCassy.xml</DocumentationFile>
     <WarningLevel>3</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
@@ -39,6 +41,7 @@
     <None Include="paket.references" />
     <Compile Include="Prelude.fs" />
     <Compile Include="Language.fs" />
+    <Compile Include="Printer.fs" />
     <Compile Include="Cassandra.fs" />
     <Compile Include="InMem.fs" />
     <Compile Include="AssemblyVersion.fs" />

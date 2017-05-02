@@ -138,6 +138,16 @@ Target "Build" (fun _ ->
 // --------------------------------------------------------------------------------------
 // Run the unit tests using test runner
 
+Target "RunTestsInteractive" (fun _ ->
+    !! testAssemblies
+    |> NUnit (fun p ->
+        { p with
+            DisableShadowCopy = true
+            IncludeCategory = "interactive"
+            TimeOut = TimeSpan.FromMinutes 20.
+            OutputFile = "build_output/Tests/TestResults.xml" })
+)
+
 Target "RunTests" (fun _ ->
     !! testAssemblies
     |> NUnit (fun p ->

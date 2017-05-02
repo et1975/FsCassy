@@ -9,9 +9,9 @@
 // for binaries output to root bin folder please add the filename only to the 
 // referenceBinaries list below in order to generate documentation for the binaries.
 // (This is the original behaviour of ProjectScaffold prior to multi project support)
-let referenceBinaries = []
+let referenceBinaries = ["FsCassy.dll"]
 // Web site location for the generated documentation
-let website = "/FsCassy"
+let website = "/"
 
 let githubLink = "https://github.com/Prolucid/FsCassy"
 
@@ -121,7 +121,7 @@ let buildDocumentation () =
 
   let subdirs = Directory.EnumerateDirectories(content, "*", SearchOption.TopDirectoryOnly)
   for dir in subdirs do
-    let dirname = (new DirectoryInfo(dir)).Name
+    let dirname = (DirectoryInfo dir).Name
     let layoutRoots =
         // Check whether this directory name is for specific language
         let key = layoutRootsAll.Keys

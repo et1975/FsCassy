@@ -4,6 +4,7 @@ open System.Linq
 open System.Linq.Expressions
 open System.Threading.Tasks
 
+/// Executes statements on a ResizeArray
 module Interpreter =
     open System.Threading.Tasks
     open System.Collections.Generic
@@ -22,7 +23,7 @@ module Interpreter =
         | Query q -> Some q
         | _ -> None
 
-    let execute (source:'t ResizeArray) (statement:Statement<'t,_,'r>) : 'r =
+    let execute (source:'t ResizeArray) (statement:Statement<'t,'r>) : 'r =
         let rec recurse = function
             | Clause(Table(mkNext)), Array a ->
                 let next = mkNext TableStatement

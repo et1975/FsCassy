@@ -2,7 +2,6 @@ module FsCassy.InMemTests
 
 open System
 open FsCassy
-open FsCassy.Statement
 open NUnit.Framework
 open Cassandra.Data.Linq
 open System.Collections.Generic
@@ -13,50 +12,49 @@ open System.Threading
 
 module Samples =
     open Statement
-    open FSharp
 
     type X = {x:int}
-    let exampleWhere : Statement<X,int,_> =
+    let exampleWhere : Statement<X,_> =
             table
         >>= where (Quote.X(fun x -> x.x = 0)) 
         >>= read
 
-    let exampleTake : Statement<X,int,_> =
+    let exampleTake : Statement<X,_> =
             table
         >>= take 1
         >>= read
 
-    let exampleCount : Statement<X,int,_> =
+    let exampleCount : Statement<X,_> =
             table
-        >>= withConsistency 1
+        >>= withConsistency Consistency.Any
         >>= count
 
-    let exampleUpdate : Statement<X,int,_> =
+    let exampleUpdate : Statement<X,_> =
             table
         >>= where (Quote.X(fun x -> x.x = 0))
         >>= select (Quote.X(fun x -> { x with x = 10}))
         >>= update
-        >>= withConsistency 1
+        >>= withConsistency Consistency.Any
         >>= execute
 
-    let exampleUpdateIf : Statement<X,int,_> =
+    let exampleUpdateIf : Statement<X,_> =
             table
         >>= where (Quote.X(fun x -> x.x = 0))
         >>= select (Quote.X(fun x -> { x with x = 10}))
         >>= updateIf (Quote.X(fun x -> x.x = 0))
-        >>= withConsistency 1
+        >>= withConsistency Consistency.Any
         >>= execute
 
-    let exampleDelete : Statement<X,int,_> =
+    let exampleDelete : Statement<X,_> =
             table
         >>= where (Quote.X(fun x -> x.x = 0))
         >>= delete
         >>= execute
 
-    let exampleUpsert : Statement<X,int,_> =
+    let exampleUpsert : Statement<X,_> =
             table
         >>= upsert {x = 100}
-        >>= withConsistency 1
+        >>= withConsistency Consistency.Any
         >>= execute
         
 

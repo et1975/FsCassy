@@ -2,7 +2,6 @@ module FsCassy.CassandraTests
 
 open System
 open FsCassy
-open FsCassy.Statement
 open FsCassy.Cassandra
 open NUnit.Framework
 open Cassandra.Data.Linq
@@ -12,21 +11,49 @@ open System.Diagnostics
 open System.Threading
 
 [<CLIMutable>]
-type Sessions = {
-    session_id:Guid
-    duration:int
-    parameters:Dictionary<string, string>
-    request:string
-    started_at:DateTimeOffset
+type Local = {
+    broadcast_address : System.Net.IPAddress
+    cluster_name : string
+    cql_version : string
+    data_center : string
 }
+let noMapping = Cassandra.Mapping.MappingConfiguration()
 
 [<Test>]
 [<Category("interactive")>]
 let ``Queryies``() = 
-    let cluster = Api.mkCluster "contact points=localhost;default keyspace=system_traces"
+    let cluster = Api.mkCluster "contact points=localhost;default keyspace=system"
+    let mkTable () =
+        Api.mkTable noMapping (Api.mkSession id cluster)
+    
     let interpret = 
-        Interpreter.execute (fun _-> Api.mkTable (Cassandra.Mapping.MappingConfiguration()) (Api.mkSession id cluster)) 
+        Interpreter.execute mkTable 
 
-    table<Sessions,_> >>= read
-    |> (interpret >> Async.RunSynchronously) 
+    table<Local> >>= read
+    |> interpret 
+    |> Async.RunSynchronously 
     |> Seq.iter (printf "%A\n")
+
+[<Test>]
+[<Category("interactive")>]
+let ``Queryies via interface``() = 
+    let cluster = Api.mkCluster "contact points=localhost;default keyspace=system"
+    let session = Api.mkSession id cluster
+        
+    let interpreter =  
+        { new Interpreter with 
+            member x.Interpret<'t,'r> (statement:Statement<'t,'r>) : 'r= 
+                let mkTable () =
+                    Api.mkTable noMapping session
+                Interpreter.execute mkTable statement }
+
+    async {
+        let! one = table<Local> >>= take 1 >>= find |> interpreter.Interpret
+        printf "%A\n" one
+
+        let! all = table<Local> >>= read |> interpreter.Interpret 
+        all |> Seq.iter (printf "%A\n")
+
+        let! cnt = table<Local> >>= count |> interpreter.Interpret 
+        printf "%A\n" cnt
+    } |> Async.RunSynchronously

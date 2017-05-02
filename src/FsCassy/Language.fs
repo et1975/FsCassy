@@ -2,6 +2,8 @@ namespace FsCassy
 open System.Linq.Expressions
 open System
 
+type Consistency = Cassandra.ConsistencyLevel
+
 module Traits =
     type Readable = interface end
     type Query = inherit Readable
@@ -34,9 +36,9 @@ type PreparedStatement =
     interface Traits.AcceptsConsistency
 
 //[<Struct>] https://github.com/Microsoft/visualfsharp/issues/1678
-type Clause<'t,'c,'next> =
+type Clause<'t,'next> =
     | Table of                                      table: (TableStatement -> 'next)
-    | WithConsistency of c: 'c                    * consistency: (Traits.AcceptsConsistency -> 'next)
+    | WithConsistency of c: Consistency           * consistency: (Traits.AcceptsConsistency -> 'next)
     | Take of n: int                              * take: (Traits.Query -> 'next)
     | Where of w: Expression<Func<'t,bool>>       * where: (Traits.Query -> 'next)
     | Select of sel: Expression<Func<'t,'t>>      * select:(Traits.Query -> 'next)
@@ -50,8 +52,8 @@ type Clause<'t,'c,'next> =
     | Find of                                       find: (Async<'t option> -> 'next)
     | Prepared of string * obj []                 * prepared: (PreparedStatement -> 'next)
 
-type Statement<'t,'c,'r> =
-    | Clause of Clause<'t,'c,Statement<'t,'c,'r>>
+type Statement<'t,'r> =
+    | Clause of Clause<'t,Statement<'t,'r>>
     | Exec of 'r
 
 [<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
@@ -73,93 +75,76 @@ module Clause =
         | Count (mkNext) -> Count (f << mkNext)
         | Prepared (s, args, mkNext) -> Prepared (s, args, f << mkNext)
 
+/// DSL for composing the statements
 [<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
+[<AutoOpen>]
 module Statement =
-    open FSharp
-
+    /// Compose statement `x` with the statement returned by `f`
     let rec bindM f =
         function
         | Clause clause -> Clause (Clause.map (bindM f) clause)
         | Exec x -> f x
-        
+
+    /// Return statement `x`
     let returnM x =
         Exec x
 
-    let lift (clause:Clause<'t,'c,_>) : Statement<'t,'c,'r> =
+    /// Lift `clause` into statement
+    let lift (clause:Clause<'t,_>) : Statement<'t,'r> =
         Clause (Clause.map Exec clause)
 
-    let table<'t,'c> : Statement<'t,'c,_> = lift (Table (fun _ -> TableStatement))
+    /// table starts every statement, binding a mapped type to the operation 
+    let table<'t> : Statement<'t,_> = lift (Table (fun _ -> TableStatement))
+
+    /// take query
     let take n (_:#Traits.Query) = lift (Take (n, fun _ -> QueryStatement))
+
+    /// where query
     let where x (_:#Traits.Query) = lift (Where(x, fun _ -> QueryStatement))
-    let select x (_:#Traits.Query) = lift (Select(x, fun _ -> QueryStatement)) 
+
+    /// select query
+    let select x (_:#Traits.Query) = lift (Select(x, fun _ -> QueryStatement))
+
+    /// specify consistency for the operation 
     let withConsistency c (q:#Traits.AcceptsConsistency) = lift (WithConsistency (c, fun _ -> q))
+
+    /// prepared statement
     let prepared (s,args) (_:TableStatement) = lift (Prepared (s, args, fun _ -> PreparedStatement))
+
+    /// insert or update command
     let upsert i (_:TableStatement) = lift (Upsert (i, fun _ -> CommandStatement))
+    
+    /// partial update command
     let update (_:#Traits.Query) =  lift (Update (fun _ -> CommandStatement))
+    
+    /// conditional partial update
     let updateIf x (_:#Traits.Query) = lift (UpdateIf (x, fun _ -> CommandStatement))
+    
+    /// delete command
     let delete (_:#Traits.Query) = lift (Delete (fun _ -> CommandStatement))
+    
+    /// count the results of a query
     let count (_:#Traits.Query) = lift (Count id)
-    let read (_:#Traits.Readable): Statement<'t,_,_> = lift (Read id)
-    let find (_:#Traits.Readable): Statement<'t,_,_> = lift (Find id)
-    let execute (_:#Traits.Command): Statement<'t,_,_> = lift (Execute id)
+    
+    /// execute read operation (return all matching records)
+    let read (_:#Traits.Readable): Statement<'t,_> = lift (Read id)
+
+    /// execute find operation (may return a single record)
+    let find (_:#Traits.Readable): Statement<'t,_> = lift (Find id)
+    
+    /// execute a command statement (doesn't return anything)
+    let execute (_:#Traits.Command): Statement<'t,_> = lift (Execute id)
+
+
 
 type Statement with
-    static member inline (>>=) (x:Statement<'t,'c,_>,f:_->Statement<'t,'c,_>) = 
+    /// Compose statement `x` with the statement returned by `f`
+    static member inline (>>=) (x:Statement<'t,_>,f:_->Statement<'t,_>) = 
         Statement.bindM f x
 
-module Printer =
-    let internal formatClause : Clause<'t,'c,_> -> _ =
-        function
-        | Table(mkNext) ->
-            ["table", typeof<'t>.Name], mkNext TableStatement
-        | WithConsistency(c, mkNext) ->
-            ["consistency", (string (box c))], mkNext CommandStatement
-        | Take(n, mkNext) -> 
-            ["take",(string n)], mkNext QueryStatement
-        | Where(x, mkNext) ->
-            ["where", (string x)], mkNext QueryStatement
-        | Select(x, mkNext) -> 
-            ["select", (string x)], mkNext QueryStatement
-        | clause -> failwithf "Unxpected clause: %A" clause
 
-    let rec internal interpretClause state =
-        function
-        | Clause(Find _) ->
-            (sprintf "select top 1 from %s" (state |> Map.find "table"))
-            + (state |> Map.tryFind "where" |> function Some where -> (sprintf " where %s" where) | _ -> "")
-            + (state |> Map.tryFind "take" |> function Some take -> (sprintf " take %s" take) | _ -> "")
-            + (state |> Map.tryFind "consistency" |> function Some c -> (sprintf " with consistency %s" c) | _ -> "")
-        | Clause(Count _) ->
-            (sprintf "select count(*) from %s" (state |> Map.find "table"))
-            + (state |> Map.tryFind "where" |> function Some where -> (sprintf " where %s" where) | _ -> "")
-            + (state |> Map.tryFind "take" |> function Some take -> (sprintf " take %s" take) | _ -> "")
-            + (state |> Map.tryFind "consistency" |> function Some c -> (sprintf " with consistency %s" c) | _ -> "")
-        | Clause(Read _) ->
-            (sprintf "select * from %s" (state |> Map.find "table"))
-            + (state |> Map.tryFind "where" |> function Some where -> (sprintf " where %s" where) | _ -> "")
-            + (state |> Map.tryFind "take" |> function Some take -> (sprintf " take %s" take) | _ -> "")
-            + (state |> Map.tryFind "consistency" |> function Some c -> (sprintf " with consistency %s" c) | _ -> "")
-        | Clause(Delete _) ->
-            (sprintf "delete from %s" (state |> Map.find "table"))
-            + (state |> Map.tryFind "where" |> function Some where -> (sprintf " where %s" where) | _ -> "")
-            + (state |> Map.tryFind "consistency" |> function Some c -> (sprintf " with consistency %s" c) | _ -> "")
-        | Clause(Update _) -> 
-            (sprintf "update %s set %s" (state |> Map.find "table") (state |> Map.find "select"))
-            + (state |> Map.tryFind "where" |> function Some where -> (sprintf " where %s" where) | _ -> "")
-            + (state |> Map.tryFind "consistency" |> function Some c -> (sprintf " with consistency %s" c) | _ -> "")
-        | Clause(UpdateIf (x,_)) -> 
-            (sprintf "update %s set %s if %A" (state |> Map.find "table") (state |> Map.find "select") x)
-            + (state |> Map.tryFind "where" |> function Some where -> (sprintf " where %s" where) | _ -> "")
-            + (state |> Map.tryFind "consistency" |> function Some c -> (sprintf " with consistency %s" c) | _ -> "")
-        | Clause(Upsert (x,_)) -> 
-            (sprintf "upsert %A into %s" x (state |> Map.find "table"))
-            + (state |> Map.tryFind "consistency" |> function Some c -> (sprintf " with consistency %s" c) | _ -> "")
-        | Clause(Prepared (s,args,_)) -> 
-            (sprintf "%s with args=%A" s args)
-            + (state |> Map.tryFind "consistency" |> function Some c -> (sprintf " with consistency %s" c) | _ -> "")
-        | Clause clause ->
-            let (tokens,next) = formatClause clause
-            interpretClause (List.fold (fun acc (k,v) -> Map.add k v acc) state tokens) next
-        | stmt -> failwithf "Invalid statement: %A" stmt 
-
-    let interpret statement = interpretClause Map.empty statement
+/// Interpreter interface that makes it possible to use the same instance of an interpreter with different type parameters
+/// from within the same function.
+/// See http://stackoverflow.com/questions/42598677/what-is-the-best-way-to-pass-generic-function-that-resolves-to-multiple-types
+type Interpreter =
+    abstract member Interpret<'t,'r> : Statement<'t,'r> -> 'r
