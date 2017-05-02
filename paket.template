@@ -1,0 +1,20 @@
+type file
+id FsCassy
+version 0.0
+authors Prolucid
+description
+    Functional F# API for Apache Cassandra
+tags
+	Cassandra F# functional database
+projectUrl
+	http://www.github.com/Prolucid/FsCassy
+licenseUrl
+	http://prolucid.github.io/FsCassy/LICENSE.html
+requireLicenseAcceptance false
+iconUrl
+	http://prolucid.github.io/FsCassy/img/logo.png
+files
+	build_output/FsCassy.dll ==> lib/net45
+	build_output/FsCassy.xml ==> lib/net45
+dependencies
+	CassandraCSharpDriver >= 3.2.1

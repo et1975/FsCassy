@@ -182,7 +182,7 @@ Target "SourceLink" (fun _ ->
 Target "NuGet" (fun _ ->
     Paket.Pack(fun p ->
         { p with
-            OutputPath = "bin"
+            OutputPath = "build_output"
             Version = release.NugetVersion
             ReleaseNotes = toLines release.Notes})
 )
@@ -190,7 +190,7 @@ Target "NuGet" (fun _ ->
 Target "PublishNuget" (fun _ ->
     Paket.Push(fun p ->
         { p with
-            WorkingDir = "bin" })
+            WorkingDir = "build_output" })
 )
 
 
@@ -289,7 +289,7 @@ let createIndexFsx lang =
     let content = """(*** hide ***)
 // This block of code is omitted in the generated HTML documentation. Use
 // it to define helpers that you do not want to show in the documentation.
-#I "../../../bin"
+#I "../../../build_output"
 
 (**
 FsCassy
