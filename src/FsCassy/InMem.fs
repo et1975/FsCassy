@@ -1,3 +1,4 @@
+/// InMem implementation for testing
 module FsCassy.InMem
 open System
 open System.Linq

@@ -86,14 +86,14 @@ Interpreters
 
 Interpreters parse statements and carry out the actual work, following functions are available:
 
-- Cassandra interpreter
+- Cassandra interpreter<br />
   Cassandra interpreter uses [Table API](http://datastax.github.io/csharp-driver/features/components/linq/) 
   and relies on the same type mapping facilities.
 
-- Pretty printer
+- Pretty printer<br />
   Humand-readable rough approximmation of the statement and it's arguments.
 
-- In-Mem interpreter
+- In-Mem interpreter<br />
   Executes statements against a predefined list.
 
 

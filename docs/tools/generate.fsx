@@ -11,7 +11,7 @@
 // (This is the original behaviour of ProjectScaffold prior to multi project support)
 let referenceBinaries = ["FsCassy.dll"]
 // Web site location for the generated documentation
-let website = "/"
+let website = "https://prolucid.github.io/FsCassy"
 
 let githubLink = "https://github.com/Prolucid/FsCassy"
 
@@ -137,9 +137,5 @@ let buildDocumentation () =
 
 // Generate
 copyFiles()
-#if HELP
 buildDocumentation()
-#endif
-#if REFERENCE
 buildReference()
-#endif

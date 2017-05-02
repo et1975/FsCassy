@@ -5,6 +5,9 @@ open System.Linq
 open System.Linq.Expressions
 open FsCassy
 
+
+/// Converts F# record updates into C#-like property assignments that
+/// the .NET driver expects
 module ExpressionTranslator =
     open System.Reflection
 
@@ -41,6 +44,7 @@ module ExpressionTranslator =
             | _ -> x
         extract Seq.empty Seq.empty x
 
+/// Convinience helpers on top of official API
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Api =
@@ -65,6 +69,7 @@ module Api =
         memoize (fun (session:ISession) -> Table<'t>(session,mappingConfiguration))
 
 
+/// Executes the statements using Cassandra Table and Mapper APIs
 module Interpreter =
     open System.Threading.Tasks
     open Cassandra

@@ -4,7 +4,7 @@
 #I "../../build_output"
 
 (**
-Functional F# API on top of official C# driver
+Functional F# API for Cassandra
 ======================
 FsCassy offers several improvements for F# expereience over the .NET driver: 
 F# quotations support for statically-typed update queries, a composable DSL for statements and 
