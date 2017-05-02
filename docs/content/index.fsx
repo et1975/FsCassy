@@ -63,7 +63,6 @@ Samples & documentation
  
 Contributing and copyright
 --------------------------
-
 The project is hosted on [GitHub][gh] where you can [report issues][issues], fork 
 the project and submit pull requests. 
 
@@ -76,4 +75,7 @@ redistribution for both commercial and non-commercial purposes. For more informa
   [issues]: https://github.com/Prolucid/FsCassy/issues
   [readme]: https://github.com/Prolucid/FsCassy/blob/master/README.md
   [license]: https://github.com/Prolucid/FsCassy/blob/master/LICENSE.md
+
+
+Copyright 2017 Prolucid Technologies Inc
 *)

@@ -7,6 +7,8 @@ FsCassy offers several improvements over the official .NET driver:
 - a composable DSL for statements,
 - a Pretty printer, Cassandra and InMem statement interpreters
 
-The pluggbale interpreter extends the reach of unit-testing into the code that would not otherwise be testable in isolation. 
+The pluggable interpreter extends the reach of unit-testing into the code that would not otherwise be testable in isolation. 
 
 =======
+
+Some assembly required: please see the tests for examples of the interpreter construction.

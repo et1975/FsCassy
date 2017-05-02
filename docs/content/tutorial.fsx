@@ -24,9 +24,11 @@ The Statement API directly reflects Cassandra operations, here are some of the e
 *)
 
 #r "FsCassy.dll"
+#r "Cassandra.dll"
 open FsCassy
 
 type SomeMappedTable = {x:int}
+
 let exampleWhere : Statement<SomeMappedTable,_> =
         table
     >>= where (Quote.X(fun x -> x.x = 0)) 
@@ -110,6 +112,7 @@ Cassandra driver and FsCassy API
 ========================
 
 FsCassy exposes a small set of functions that make it easier to construct the relevant parts, thier use is completely optional:
+
 - Cluster connectivity
 - Session construction and parametrization
 - LINQ Table construction
@@ -134,6 +137,7 @@ let xs = [ {x = 1}
            {x = 5}
            {x = 0}
            {x = 6} ]
+
 let ``InMem reads``() = 
     table >>= read 
     |> InMem.Interpreter.execute (ResizeArray xs) 
