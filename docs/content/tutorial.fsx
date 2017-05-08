@@ -125,7 +125,7 @@ You may want to have your own implementations instead using the official Cassand
 InMem API
 ========================
 
-InMem implmenetation of the interpreter takes a ResizeArray as the source to work agains and can be supplied instead
+InMem implemenetation of the interpreter takes a ResizeArray as the source to work agains and can be supplied instead
 of Cassandra interpreter:
 *)
 
