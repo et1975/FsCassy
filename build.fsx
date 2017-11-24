@@ -50,8 +50,6 @@ let solutionFile  = "src/FsCassy.sln"
 // Default target configuration
 let configuration = "Release"
 
-// Pattern specifying assemblies to be tested using NUnit
-let testAssemblies = "build_output/Tests/*.Tests.dll"
 
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted
@@ -64,49 +62,38 @@ let gitName = "FsCassy"
 // The url for the raw files hosted
 let gitRaw = environVarOrDefault "gitRaw" "https://raw.githubusercontent.com/Prolucid"
 
-// --------------------------------------------------------------------------------------
-// END TODO: The rest of the file includes standard build steps
-// --------------------------------------------------------------------------------------
+
+// Pattern specifying assemblies to be tested using NUnit
+let testAssemblies = "src/FsCassy.Tests/bin/**/*.Tests.dll"
 
 // Read additional information from the release notes document
 let release = LoadReleaseNotes "RELEASE_NOTES.md"
 
-// Helper active pattern for project types
-let (|Fsproj|Csproj|) (projFileName:string) =
-    match projFileName with
-    | f when f.EndsWith("fsproj") -> Fsproj
-    | f when f.EndsWith("csproj") -> Csproj
-    | _                           -> failwith (sprintf "Project file %s not supported. Unknown project type." projFileName)
+let assemblyInfo =
+    [ "Description",summary
+      "Version", (string release.SemVer)
+      "Authors", gitOwner
+      "PackageProjectUrl", gitHome
+      "RepositoryUrl", gitHome
+      "PackageIconUrl", gitRaw + "/master/docs/files/img/logo.png"
+      "PackageLicenseUrl", gitRaw + "/master/docs/files/LICENSE.md" ]
 
-// Generate assembly info files with the right version & up-to-date information
-Target "AssemblyInfo" (fun _ ->
-    let getAssemblyInfoAttributes projectName =
-        [ Attribute.Title (projectName)
-          Attribute.Product project
-          Attribute.Description summary
-          Attribute.Version release.AssemblyVersion
-          Attribute.FileVersion release.AssemblyVersion
-          Attribute.Configuration configuration ]
+let dotnetcliVersion = "2.0.0"
 
-    let getProjectDetails projectPath =
-        let projectName = System.IO.Path.GetFileNameWithoutExtension(projectPath)
-        ( projectPath,
-          projectName,
-          System.IO.Path.GetDirectoryName(projectPath),
-          (getAssemblyInfoAttributes projectName)
-        )
+let mutable dotnetExePath = "dotnet"
 
-    !! "src/**/*.??proj"
-    |> Seq.map getProjectDetails
-    |> Seq.iter (fun (projFileName, projectName, folderName, attributes) ->
-        match projFileName with
-        | Fsproj -> CreateFSharpAssemblyInfo (folderName </> "AssemblyInfo.fs") attributes
-        | Csproj -> CreateFSharpAssemblyInfo (folderName </> "AssemblyInfo.cs") attributes
-        )
+Target "InstallDotNetCore" (fun _ ->
+    dotnetExePath <- DotNetCli.InstallDotNetSDK dotnetcliVersion
 )
 
-// --------------------------------------------------------------------------------------
-// Clean build results
+let runDotnet workingDir args =
+    let result =
+        ExecProcess (fun info ->
+            info.FileName <- dotnetExePath
+            info.WorkingDirectory <- workingDir
+            info.Arguments <- args) TimeSpan.MaxValue
+    if result <> 0 then failwithf "dotnet %s failed" args
+
 
 let vsProjProps = 
 #if MONO
@@ -116,12 +103,10 @@ let vsProjProps =
 #endif
 
 Target "Clean" (fun _ ->
-    !! solutionFile |> MSBuildReleaseExt "" vsProjProps "Clean" |> ignore
-    CleanDirs ["build_output"; "temp"; "docs/output"]
+    CleanDirs ["docs/output"]
+    !! "src/**/*.??proj"
+    |> Seq.iter ((sprintf "clean %s") >> runDotnet ".")
 )
-
-// --------------------------------------------------------------------------------------
-// Build library & test project
 
 Target "Incremental" (fun _ ->
     !! solutionFile
@@ -129,9 +114,14 @@ Target "Incremental" (fun _ ->
     |> ignore
 )
 
+Target "Restore" (fun _ ->
+    !! "src/**/*.??proj"
+    |> Seq.iter ((sprintf "restore %s") >> runDotnet ".")
+)
+
 Target "Build" (fun _ ->
     !! solutionFile
-    |> MSBuildReleaseExt "" vsProjProps "Rebuild"
+    |> MSBuildReleaseExt "" assemblyInfo "Rebuild"
     |> ignore
 )
 
@@ -145,7 +135,7 @@ Target "RunTestsInteractive" (fun _ ->
             DisableShadowCopy = true
             IncludeCategory = "interactive"
             TimeOut = TimeSpan.FromMinutes 20.
-            OutputFile = "build_output/Tests/TestResults.xml" })
+            OutputFile = "src/FsCassy.Tests/obj/TestResults.xml" })
 )
 
 Target "RunTests" (fun _ ->
@@ -155,7 +145,7 @@ Target "RunTests" (fun _ ->
             DisableShadowCopy = true
             ExcludeCategory = "interactive"
             TimeOut = TimeSpan.FromMinutes 20.
-            OutputFile = "build_output/Tests/TestResults.xml" })
+            OutputFile = "src/FsCassy.Tests/obj/TestResults.xml" })
 )
 
 #if MONO
@@ -180,17 +170,13 @@ Target "SourceLink" (fun _ ->
 // Build a NuGet package
 
 Target "NuGet" (fun _ ->
-    Paket.Pack(fun p ->
-        { p with
-            OutputPath = "build_output"
-            Version = release.NugetVersion
-            ReleaseNotes = toLines release.Notes})
+    runDotnet 
+        "src/FsCassy"
+        (assemblyInfo |> Seq.fold (fun s (p,v) -> s + (sprintf " /p:%s=\"%s\"" p v)) "pack -c Release --no-build")
 )
 
 Target "PublishNuget" (fun _ ->
-    Paket.Push(fun p ->
-        { p with
-            WorkingDir = "build_output" })
+    runDotnet "src/FsCassy" "nuget publish"
 )
 
 
@@ -372,14 +358,15 @@ Target "Release" (fun _ ->
     |> Async.RunSynchronously
 )
 
-Target "BuildPackage" DoNothing
+Target "Package" DoNothing
 
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
 
 Target "All" DoNothing
 
-"AssemblyInfo"
+"Clean"
+  ==> "Restore"
   ==> "Build"
   ==> "RunTests"
   ==> "GenerateReferenceDocs"
@@ -389,7 +376,7 @@ Target "All" DoNothing
   =?> ("SourceLink", Pdbstr.tryFind().IsSome )
 #endif
   ==> "NuGet"
-  ==> "BuildPackage"
+  ==> "Package"
   ==> "All"
   =?> ("ReleaseDocs",isLocalBuild)
 
@@ -403,7 +390,7 @@ Target "All" DoNothing
 "Clean"
   ==> "Release"
 
-"BuildPackage"
+"Package"
   ==> "PublishNuget"
   ==> "Release"
 

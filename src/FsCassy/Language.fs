@@ -1,6 +1,7 @@
 namespace FsCassy
 open System.Linq.Expressions
 open System
+open Hopac
 
 type Consistency = Cassandra.ConsistencyLevel
 
@@ -35,7 +36,7 @@ type PreparedStatement =
     interface Traits.Command
     interface Traits.AcceptsConsistency
 
-//[<Struct>] https://github.com/Microsoft/visualfsharp/issues/1678
+[<Struct>]
 type Clause<'t,'next> =
     | Table of                                      table: (TableStatement -> 'next)
     | WithConsistency of c: Consistency           * consistency: (Traits.AcceptsConsistency -> 'next)
@@ -46,10 +47,10 @@ type Clause<'t,'next> =
     | Upsert of i: 't                             * item: (Traits.Command -> 'next)
     | Update of                                     update: (Traits.Command -> 'next)
     | Delete of                                     delete: (Traits.Command -> 'next)
-    | Execute of                                    exec: (Async<unit> -> 'next)
-    | Count of                                      count: (Async<int64> -> 'next)
-    | Read of                                       read: (Async<'t seq> -> 'next)
-    | Find of                                       find: (Async<'t option> -> 'next)
+    | Execute of                                    exec: (Job<unit> -> 'next)
+    | Count of                                      count: (Job<int64> -> 'next)
+    | Read of                                       read: (Job<'t seq> -> 'next)
+    | Find of                                       find: (Job<'t option> -> 'next)
     | Prepared of string * obj []                 * prepared: (PreparedStatement -> 'next)
 
 type Statement<'t,'r> =
@@ -137,7 +138,7 @@ module Statement =
 
 
 
-type Statement with
+type Statement<'t,'r> with
     /// Compose statement `x` with the statement returned by `f`
     static member inline (>>=) (x:Statement<'t,_>,f:_->Statement<'t,_>) = 
         Statement.bindM f x

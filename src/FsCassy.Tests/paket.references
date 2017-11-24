@@ -1,4 +1,6 @@
+FSharp.Core
 CassandraCSharpDriver
 group Tests
 Nunit
 Unquote
+

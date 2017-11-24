@@ -48,7 +48,6 @@ module ExpressionTranslator =
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Api =
-    open System.Threading.Tasks
     open Cassandra
     open Cassandra.Data.Linq
     open Cassandra.Mapping
@@ -76,6 +75,7 @@ module Interpreter =
     open Cassandra.Data.Linq
     open Cassandra.Mapping
     open FsCassy
+    open Hopac
 
     [<Struct>]
     type internal InterpretationState<'t> = 
@@ -121,7 +121,8 @@ module Interpreter =
             
             | Clause(Select(x, mkNext)), Query q -> 
                 let next = mkNext QueryStatement
-                q.Select (ExpressionTranslator.translate x) |> (Query >> tuple next >> recurse)
+                let exp:Expression<Func<'t,'t>> = ExpressionTranslator.translate x
+                q.Select exp |> (Query >> tuple next >> recurse)
             
             | Clause(UpdateIf(x, mkNext)), Query q -> 
                 let next = mkNext CommandStatement
@@ -144,36 +145,36 @@ module Interpreter =
                 t.Insert item :> CqlCommand |> (Command >> tuple next >> recurse)
             
             | Clause(Execute(mkNext)), Command c ->
-                let next = c.ExecuteAsync() |> Async.await |> mkNext
+                let next = c.ExecuteAsync() |> Job.await |> mkNext
                 recurse (next,Executing) 
             
             | Clause(Count(mkNext)), Query q -> 
-                let next = q.Count().ExecuteAsync() |> Async.AwaitTask |> mkNext
+                let next = q.Count().ExecuteAsync |> Job.fromTask |> mkNext
                 recurse (next,Executing) 
             
             | Clause(Read(mkNext)), Query q -> 
-                let next = q.ExecuteAsync() |> Async.AwaitTask |> mkNext
+                let next = q.ExecuteAsync |> Job.fromTask |> mkNext
                 recurse (next,Executing) 
             
             | Clause(Find(mkNext)), Query q -> 
-                let next = async {
-                                let! i = q.FirstOrDefault().ExecuteAsync() |> Async.AwaitTask
+                let next = job {
+                                let! i = q.FirstOrDefault().ExecuteAsync |> Job.fromTask
                                 if Object.ReferenceEquals(i, null) then return None
                                 else return Some(i)
                            } |> mkNext
                 recurse (next,Executing) 
             
             | Clause(Execute(mkNext)), Statement cql ->
-                let next = mapper.ExecuteAsync cql |> Async.await |> mkNext
+                let next = mapper.ExecuteAsync cql |> Job.awaitUnitTask |> mkNext
                 recurse (next,Executing) 
             
             | Clause(Read(mkNext)), Statement cql -> 
-                let next = mapper.FetchAsync<'t> cql |> Async.AwaitTask |> mkNext
+                let next = mapper.FetchAsync<'t> cql |> Job.awaitTask |> mkNext
                 recurse (next,Executing) 
             
             | Clause(Find(mkNext)), Statement cql -> 
-                let next = async {
-                                let! i = mapper.FirstOrDefaultAsync<'t> cql |> Async.AwaitTask
+                let next = job {
+                                let! i = mapper.FirstOrDefaultAsync<'t> cql |> Job.awaitTask
                                 if Object.ReferenceEquals(i, null) then return None
                                 else return Some(i)
                            } |> mkNext

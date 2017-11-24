@@ -13,17 +13,9 @@ let memoize f =
 type Quote<'T> = 
     static member X(exp:Expression<Func<'T,'a>>) = exp
 
-module Async =
-    open System
-    open System.Threading.Tasks
+module Job =
+    open Hopac
 
-    let await (t: #Task) = 
-        Async.FromContinuations(fun (s, e, c) ->
-            t.ContinueWith(fun (t:Task) -> 
-                    if t.IsFaulted then e(t.Exception)
-                    elif t.IsCompleted then s()
-                    else c(System.OperationCanceledException())
-                )
-            |> ignore
-        )
+    let inline await t = t |> (Job.awaitTask >> Job.Ignore)  
+        
 
