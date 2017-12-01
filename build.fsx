@@ -62,10 +62,6 @@ let gitName = "FsCassy"
 // The url for the raw files hosted
 let gitRaw = environVarOrDefault "gitRaw" "https://raw.githubusercontent.com/Prolucid"
 
-
-// Pattern specifying assemblies to be tested using NUnit
-let testAssemblies = "src/FsCassy.Tests/bin/**/*.Tests.dll"
-
 // Read additional information from the release notes document
 let release = LoadReleaseNotes "RELEASE_NOTES.md"
 
@@ -95,13 +91,6 @@ let runDotnet workingDir args =
     if result <> 0 then failwithf "dotnet %s failed" args
 
 
-let vsProjProps = 
-#if MONO
-    [ ("DefineConstants","MONO"); ("Configuration", configuration) ]
-#else
-    [ ("Configuration", configuration); ("Platform", "Any CPU") ]
-#endif
-
 Target "Clean" (fun _ ->
     CleanDirs ["docs/output"]
     !! "src/**/*.??proj"
@@ -110,7 +99,7 @@ Target "Clean" (fun _ ->
 
 Target "Incremental" (fun _ ->
     !! solutionFile
-    |> MSBuild "" "Build" vsProjProps
+    |> MSBuild "" "Build" []
     |> ignore
 )
 
@@ -127,6 +116,7 @@ Target "Build" (fun _ ->
 
 // --------------------------------------------------------------------------------------
 // Run the unit tests using test runner
+let testAssemblies = "src/*.Tests/bin/**/*.Tests.dll"
 
 Target "RunTestsInteractive" (fun _ ->
     !! testAssemblies
@@ -135,7 +125,7 @@ Target "RunTestsInteractive" (fun _ ->
             DisableShadowCopy = true
             IncludeCategory = "interactive"
             TimeOut = TimeSpan.FromMinutes 20.
-            OutputFile = "src/FsCassy.Tests/obj/TestResults.xml" })
+            OutputFile = "build_output/TestResults.xml" })
 )
 
 Target "RunTests" (fun _ ->
@@ -145,7 +135,7 @@ Target "RunTests" (fun _ ->
             DisableShadowCopy = true
             ExcludeCategory = "interactive"
             TimeOut = TimeSpan.FromMinutes 20.
-            OutputFile = "src/FsCassy.Tests/obj/TestResults.xml" })
+            OutputFile = "build_output/TestResults.xml" })
 )
 
 #if MONO
@@ -168,15 +158,16 @@ Target "SourceLink" (fun _ ->
 
 // --------------------------------------------------------------------------------------
 // Build a NuGet package
+let packages = ["FsCassy";"FsCassy.Hopac"] 
 
-Target "NuGet" (fun _ ->
-    runDotnet 
-        "src/FsCassy"
-        (assemblyInfo |> Seq.fold (fun s (p,v) -> s + (sprintf " /p:%s=\"%s\"" p v)) "pack -c Release --no-build")
+Target "Package" (fun _ ->
+    packages
+    |> Seq.iter (fun n -> runDotnet (sprintf "src/%s" n) (assemblyInfo |> Seq.fold (fun s (p,v) -> s + (sprintf " /p:%s=\"%s\"" p v)) "pack -c Release --no-build"))
 )
 
 Target "PublishNuget" (fun _ ->
-    runDotnet "src/FsCassy" "nuget publish"
+    packages
+    |> Seq.iter (fun n -> runDotnet (sprintf "src/%s" n) (sprintf "nuget push bin/Release/%s.%s.nupkg -s nuget.org -k %s" n (string release.SemVer) (environVar "nugetkey")))
 )
 
 
@@ -358,8 +349,6 @@ Target "Release" (fun _ ->
     |> Async.RunSynchronously
 )
 
-Target "Package" DoNothing
-
 // --------------------------------------------------------------------------------------
 // Run all targets by default. Invoke 'build <Target>' to override
 
@@ -375,7 +364,6 @@ Target "All" DoNothing
 #else
   =?> ("SourceLink", Pdbstr.tryFind().IsSome )
 #endif
-  ==> "NuGet"
   ==> "Package"
   ==> "All"
   =?> ("ReleaseDocs",isLocalBuild)
@@ -386,9 +374,6 @@ Target "All" DoNothing
 
 "GenerateHelpDebug"
   ==> "KeepRunning"
-
-"Clean"
-  ==> "Release"
 
 "Package"
   ==> "PublishNuget"

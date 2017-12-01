@@ -1,7 +1,7 @@
 namespace FsCassy
 open System.Linq.Expressions
 open System
-open Hopac
+open System.Text
 
 type Consistency = Cassandra.ConsistencyLevel
 
@@ -47,10 +47,10 @@ type Clause<'t,'next> =
     | Upsert of i: 't                             * item: (Traits.Command -> 'next)
     | Update of                                     update: (Traits.Command -> 'next)
     | Delete of                                     delete: (Traits.Command -> 'next)
-    | Execute of                                    exec: (Job<unit> -> 'next)
-    | Count of                                      count: (Job<int64> -> 'next)
-    | Read of                                       read: (Job<'t seq> -> 'next)
-    | Find of                                       find: (Job<'t option> -> 'next)
+    | Execute of                                    exec: (Computation<unit> -> 'next)
+    | Count of                                      count: (Computation<int64> -> 'next)
+    | Read of                                       read: (Computation<'t seq> -> 'next)
+    | Find of                                       find: (Computation<'t option> -> 'next)
     | Prepared of string * obj []                 * prepared: (PreparedStatement -> 'next)
 
 type Statement<'t,'r> =

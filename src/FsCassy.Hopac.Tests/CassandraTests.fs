@@ -8,7 +8,7 @@ open Cassandra.Data.Linq
 open System.Collections.Generic
 open Swensen.Unquote
 open System.Diagnostics
-open System.Threading
+open Hopac
 
 [<CLIMutable>]
 type Local = {
@@ -31,7 +31,7 @@ let ``Queryies``() =
 
     table<Local> >>= read
     |> interpret 
-    |> Async.RunSynchronously 
+    |> run
     |> Seq.iter (printf "%A\n")
 
 [<Test>]
@@ -47,7 +47,7 @@ let ``Queryies via interface``() =
                     Api.mkTable noMapping session
                 Interpreter.execute mkTable statement }
 
-    async {
+    job {
         let! one = table<Local> >>= take 1 >>= find |> interpreter.Interpret
         printf "%A\n" one
 
@@ -56,4 +56,4 @@ let ``Queryies via interface``() =
 
         let! cnt = table<Local> >>= count |> interpreter.Interpret 
         printf "%A\n" cnt
-    } |> Async.RunSynchronously
+    } |> run

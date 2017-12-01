@@ -60,6 +60,8 @@ module Samples =
 
 
 open Samples
+open Hopac
+
 let xs = [ {x = 1}
            {x = 2}
            {x = 3}
@@ -71,47 +73,47 @@ let xs = [ {x = 1}
 [<Test>]
 let ``InMem reads``() = 
     table >>= read |> InMem.Interpreter.execute (ResizeArray xs) 
-    |> Async.RunSynchronously |> List.ofSeq =! xs
+    |> run |> List.ofSeq =! xs
 
 [<Test>]
 let ``InMem where``() = 
     Samples.exampleWhere |> InMem.Interpreter.execute (ResizeArray xs) 
-    |> Async.RunSynchronously |> List.ofSeq =! [{x=0}; {x=0}]
+    |> run |> List.ofSeq =! [{x=0}; {x=0}]
 
 [<Test>]
 let ``InMem takes``() = 
     Samples.exampleTake |> InMem.Interpreter.execute (ResizeArray xs) 
-    |> Async.RunSynchronously |> List.ofSeq =! [{x=1}]
+    |> run |> List.ofSeq =! [{x=1}]
 
 [<Test>]
 let ``InMem counts``() = 
     Samples.exampleCount |> InMem.Interpreter.execute (ResizeArray xs) 
-    |> Async.RunSynchronously =! (int64 <| List.length xs)
+    |> run =! (int64 <| List.length xs)
 
 [<Test>]
 let ``InMem upserts``() = 
     let xs = ResizeArray xs
     Samples.exampleUpsert |> InMem.Interpreter.execute xs  
-    |> Async.RunSynchronously
+    |> run
     xs.Contains {x=100} =! true
 
 [<Test>]
 let ``InMem updates``() = 
     let xs = ResizeArray xs
     Samples.exampleUpdate |> InMem.Interpreter.execute xs 
-    |> Async.RunSynchronously
+    |> run
     xs.Contains {x=10} =! true
 
 [<Test>]
 let ``InMem updatesIf``() = 
     let xs = ResizeArray xs
     Samples.exampleUpdateIf |> InMem.Interpreter.execute xs 
-    |> Async.RunSynchronously
+    |> run
     xs.Contains {x=10} =! true
 
 [<Test>]
 let ``InMem deletes``() = 
     let xs = ResizeArray xs
     Samples.exampleDelete |> InMem.Interpreter.execute xs 
-    |> Async.RunSynchronously
+    |> run
     xs.Contains {x=0} =! false

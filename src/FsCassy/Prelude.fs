@@ -13,9 +13,12 @@ let memoize f =
 type Quote<'T> = 
     static member X(exp:Expression<Func<'T,'a>>) = exp
 
-module Job =
-    open Hopac
 
-    let inline await t = t |> (Job.awaitTask >> Job.Ignore)  
+#if HOPAC
+open Hopac
+type Computation<'a> = Job<'a>
+#else
+type Computation<'a> = Async<'a>
+#endif
         
 

@@ -2,25 +2,23 @@
 module FsCassy.InMem
 open System
 open System.Linq
-open System.Linq.Expressions
-open System.Threading.Tasks
+open Hopac
 
 /// Executes statements on a ResizeArray
 module Interpreter =
-    open System.Threading.Tasks
     open System.Collections.Generic
 
     [<Struct>]
     type InterpretationState<'t> = 
         | Array of array:'t ResizeArray 
-        | Query of query:Async<IEnumerable<'t>>
-        | Selection of selection:Async<IEnumerable<int*'t>>
-        | Command of command:Async<unit>
+        | Query of query:Job<IEnumerable<'t>>
+        | Selection of selection:Job<IEnumerable<int*'t>>
+        | Command of command:Job<unit>
         | Done
 
-    let internal (|Querylike|_|) : InterpretationState<'t> -> Async<IEnumerable<'t>> option =
+    let internal (|Querylike|_|) : InterpretationState<'t> -> Job<IEnumerable<'t>> option =
         function
-        | Array a -> Some (a :> IEnumerable<'t> |> async.Return)
+        | Array a -> Some (a :> IEnumerable<'t> |> Job.result)
         | Query q -> Some q
         | _ -> None
 
@@ -36,42 +34,42 @@ module Interpreter =
             
             | Clause(Take(n, mkNext)), Querylike q -> 
                 let next = mkNext QueryStatement
-                async { let! q' = q in return q'.Take n }
+                job { let! q' = q in return q'.Take n }
                 |> (Query >> tuple next >> recurse)
             
             | Clause(Take(n, mkNext)), Selection q -> 
                 let next = mkNext QueryStatement
-                async { let! q' = q in return q'.Take n }
+                job { let! q' = q in return q'.Take n }
                 |> (Selection >> tuple next >> recurse)
             
             | Clause(Where(x, mkNext)), Querylike q ->
                 let next = mkNext QueryStatement
                 let w = x.Compile().Invoke
-                async { let! q' = q in return q' |> Seq.mapi tuple |> Seq.filter (snd >> w) }
+                job { let! q' = q in return q' |> Seq.mapi tuple |> Seq.filter (snd >> w) }
                 |> (Selection >> tuple next >> recurse)
             
             | Clause(Where(x, mkNext)), Selection q ->
                 let next = mkNext QueryStatement
                 let w = x.Compile().Invoke
-                async { let! q' = q in return q' |> Seq.filter (snd >> w) }
+                job { let! q' = q in return q' |> Seq.filter (snd >> w) }
                 |> (Selection >> tuple next >> recurse)
             
             | Clause(Select(x, mkNext)), Querylike q -> 
                 let next = mkNext QueryStatement
                 let sel = x.Compile().Invoke
-                async { let! q' = q in return q' |> Seq.mapi (fun i v -> i,sel v) }
+                job { let! q' = q in return q' |> Seq.mapi (fun i v -> i,sel v) }
                 |> (Selection >> tuple next >> recurse)
             
             | Clause(Select(x, mkNext)), Selection q -> 
                 let next = mkNext QueryStatement
                 let sel = x.Compile().Invoke
-                async { let! q' = q in return q' |> Seq.map (fun (i,v) -> i,sel v) }
+                job { let! q' = q in return q' |> Seq.map (fun (i,v) -> i,sel v) }
                 |> (Selection >> tuple next >> recurse)
             
             | Clause(UpdateIf(x, mkNext)), Selection q -> 
                 let next = mkNext CommandStatement
                 let iff = x.Compile().Invoke
-                async { 
+                job { 
                     let! q' = q
                     let res = q' |> Seq.filter (fun (i,_) -> iff source.[i]) |> List.ofSeq
                     res |> List.iter (fun (i,v) -> source.[i] <- v)
@@ -79,14 +77,14 @@ module Interpreter =
             
             | Clause(Update(mkNext)), Selection q -> 
                 let next = mkNext CommandStatement
-                async { 
+                job { 
                     let! q' = q
                     q' |> List.ofSeq |> List.iter (fun (i,v) -> source.[i] <- v)
                 } |> (Command >> tuple next >> recurse)
             
             | Clause(Delete(mkNext)), Querylike q -> 
                 let next = mkNext CommandStatement
-                async { 
+                job { 
                     let! q' = q
                     let res = q' |> List.ofSeq
                     res |> List.iter (source.Remove >> ignore)
@@ -94,7 +92,7 @@ module Interpreter =
             
             | Clause(Delete(mkNext)), Selection q -> 
                 let next = mkNext CommandStatement
-                async { 
+                job { 
                     let! q' = q
                     let res = q' |> Seq.sortByDescending fst |> List.ofSeq
                     res |> List.iter (fst >> source.RemoveAt)
@@ -102,7 +100,7 @@ module Interpreter =
             
             | Clause(Upsert(item, mkNext)), Array a ->
                 let next = mkNext CommandStatement
-                async { a.Add item } 
+                job { a.Add item } 
                 |> (Command >> tuple next >> recurse)
             
             | Clause(Execute(mkNext)), Command c ->
@@ -110,14 +108,14 @@ module Interpreter =
                 recurse (next,Done) 
             
             | Clause(Count(mkNext)), Querylike q -> 
-                let next = async {
+                let next = job {
                                 let! q' = q
                                 return q' |> Seq.length |> int64 
                            } |> mkNext
                 recurse (next,Done) 
             
             | Clause(Count(mkNext)), Selection q -> 
-                let next = async {
+                let next = job {
                                 let! q' = q
                                 return q' |> Seq.length |> int64 
                            } |> mkNext
@@ -128,21 +126,21 @@ module Interpreter =
                 recurse (next,Done) 
             
             | Clause(Read(mkNext)), Selection q -> 
-                let next = async {
+                let next = job {
                                 let! q' = q
                                 return q' |> Seq.map snd
                             } |> mkNext
                 recurse (next,Done) 
             
             | Clause(Find(mkNext)), Querylike q -> 
-                let next = async {
+                let next = job {
                                 let! q' = q 
                                 return q' |> Seq.tryHead
                            } |> mkNext
                 recurse (next,Done) 
             
             | Clause(Find(mkNext)), Selection q -> 
-                let next = async {
+                let next = job {
                                 let! q' = q 
                                 return q' |> Seq.map snd |> Seq.tryHead
                            } |> mkNext

@@ -4,15 +4,16 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <DocumentationFile>obj/FsCassy.XML</DocumentationFile>
     <PackageTags>fsharp;cassandra</PackageTags>
+    <DefineConstants>HOPAC</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
-    <Compile Include="Prelude.fs" />
-    <Compile Include="Language.fs" />
-    <Compile Include="Printer.fs" />
-    <Compile Include="Util.fs" />
-    <Compile Include="Cassandra.fs" />
+    <Compile Include="..\FsCassy\Prelude.fs" />
+    <Compile Include="..\FsCassy\Language.fs" />
+    <Compile Include="..\FsCassy\Printer.fs" />
+    <Compile Include="..\FsCassy\Util.fs" />
     <Compile Include="InMem.fs" />
+    <Compile Include="Cassandra.fs" />
   </ItemGroup>
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
