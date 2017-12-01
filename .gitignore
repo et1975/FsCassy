@@ -39,7 +39,6 @@ packages/*
 #!packages/repositories.config
 paket-files/
 *.orig
-.paket/paket.exe
 .paket/paket.targets
 
 # docs

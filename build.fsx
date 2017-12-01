@@ -92,7 +92,7 @@ let runDotnet workingDir args =
 
 
 Target "Clean" (fun _ ->
-    CleanDirs ["docs/output"]
+    CleanDirs ["docs/output"; "build_output"]
     !! "src/**/*.??proj"
     |> Seq.iter ((sprintf "clean %s") >> runDotnet ".")
 )
