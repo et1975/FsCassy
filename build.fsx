@@ -54,13 +54,13 @@ let configuration = "Release"
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted
 let gitOwner = "Prolucid"
-let gitHome = sprintf "%s/%s" "https://github.com" gitOwner
+let gitHome = sprintf "https://github.com/%s" gitOwner
 
 // The name of the project on GitHub
 let gitName = "FsCassy"
 
 // The url for the raw files hosted
-let gitRaw = environVarOrDefault "gitRaw" "https://raw.githubusercontent.com/Prolucid"
+let gitRaw = environVarOrDefault "gitRaw" (sprintf "https://raw.githubusercontent.com/%s/%s" gitOwner gitName)
 
 // Read additional information from the release notes document
 let release = LoadReleaseNotes "RELEASE_NOTES.md"
@@ -97,12 +97,6 @@ Target "Clean" (fun _ ->
     |> Seq.iter ((sprintf "clean %s") >> runDotnet ".")
 )
 
-Target "Incremental" (fun _ ->
-    !! solutionFile
-    |> MSBuild "" "Build" []
-    |> ignore
-)
-
 Target "Restore" (fun _ ->
     !! "src/**/*.??proj"
     |> Seq.iter ((sprintf "restore %s") >> runDotnet ".")
@@ -110,7 +104,7 @@ Target "Restore" (fun _ ->
 
 Target "Build" (fun _ ->
     !! solutionFile
-    |> MSBuildReleaseExt "" assemblyInfo "Rebuild"
+    |> MSBuildReleaseExt "" assemblyInfo "Build"
     |> ignore
 )
 
@@ -118,7 +112,7 @@ Target "Build" (fun _ ->
 // Run the unit tests using test runner
 let testAssemblies = "src/*.Tests/bin/**/*.Tests.dll"
 
-Target "RunTestsInteractive" (fun _ ->
+Target "TestsInteractive" (fun _ ->
     !! testAssemblies
     |> NUnit (fun p ->
         { p with
@@ -128,7 +122,7 @@ Target "RunTestsInteractive" (fun _ ->
             OutputFile = "build_output/TestResults.xml" })
 )
 
-Target "RunTests" (fun _ ->
+Target "Tests" (fun _ ->
     !! testAssemblies
     |> NUnit (fun p ->
         { p with
@@ -354,32 +348,24 @@ Target "Release" (fun _ ->
 
 Target "All" DoNothing
 
-"Clean"
-  ==> "Restore"
-  ==> "Build"
-  ==> "RunTests"
+"All"
+  <== ["Clean"; "Restore"; "Build"; "Tests"; "Package"; "GenerateReferenceDocs"; "GenerateDocs"]
+
+"Build"
+  ==> "Tests"
+
+"Build"
+  ==> "GenerateHelp"
   ==> "GenerateReferenceDocs"
   ==> "GenerateDocs"
-#if MONO
-#else
-  =?> ("SourceLink", Pdbstr.tryFind().IsSome )
-#endif
-  ==> "Package"
-  ==> "All"
-  =?> ("ReleaseDocs",isLocalBuild)
+
+"Build"
+  ==> "GenerateHelpDebug"
 
 "GenerateHelp"
-  ==> "GenerateReferenceDocs"
-  ==> "GenerateDocs"
-
-"GenerateHelpDebug"
   ==> "KeepRunning"
-
-"Package"
-  ==> "PublishNuget"
-  ==> "Release"
-
-"ReleaseDocs"
-  ==> "Release"
+    
+"Release"
+  <== ["All"; "PublishNuget"; "ReleaseDocs"]
 
 RunTargetOrDefault "All"

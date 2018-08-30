@@ -3,9 +3,9 @@ module FsCassy.Prelude
 open System
 open System.Linq.Expressions
 
-let tuple x y = (x,y)
+let internal tuple x y = (x,y)
 
-let memoize f =
+let internal memoize f =
     let dict = System.Collections.Concurrent.ConcurrentDictionary<_,_>()
     fun x -> dict.GetOrAdd(x, lazy (f x)).Force()
 
