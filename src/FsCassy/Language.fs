@@ -142,10 +142,3 @@ type Statement<'t,'r> with
     /// Compose statement `x` with the statement returned by `f`
     static member inline (>>=) (x:Statement<'t,_>,f:_->Statement<'t,_>) = 
         Statement.bindM f x
-
-
-/// Interpreter interface that makes it possible to use the same instance of an interpreter with different type parameters
-/// from within the same function.
-/// See http://stackoverflow.com/questions/42598677/what-is-the-best-way-to-pass-generic-function-that-resolves-to-multiple-types
-type Interpreter =
-    abstract member Interpret<'t,'r> : Statement<'t,'r> -> 'r

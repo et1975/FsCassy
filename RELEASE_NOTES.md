@@ -1,3 +1,6 @@
+#### 1.0.1 - Nov 2017
+* constrainging Interpreter method to Computation<_>
+
 #### 1.0.0 - Nov 2017
 * netstandard 2.0
 

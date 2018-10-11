@@ -3,11 +3,7 @@ module FsCassy.InMemTests
 open System
 open FsCassy
 open NUnit.Framework
-open Cassandra.Data.Linq
-open System.Collections.Generic
 open Swensen.Unquote
-open System.Diagnostics
-open System.Threading
 
 
 module Samples =

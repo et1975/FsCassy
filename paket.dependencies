@@ -1,23 +1,16 @@
 redirects: on
 
 group Main
-framework: netstandard2.0
 storage: none
 source https://www.nuget.org/api/v2
 
     nuget FSharp.Core redirects: force
     nuget CassandraCSharpDriver
     nuget Hopac
-
-
-group Tests
-framework: net4.6.1
-source https://nuget.org/api/v2
-
-    nuget Nunit 2.6.4
-    nuget Nunit.Runners 2.6.4
+    nuget NUnit3TestAdapter
+    nuget Nunit
     nuget Unquote
-
+    nuget Microsoft.NET.Test.Sdk
 
 group Build
 framework: net4.6

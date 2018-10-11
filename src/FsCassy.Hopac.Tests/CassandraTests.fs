@@ -42,7 +42,7 @@ let ``Queryies via interface``() =
         
     let interpreter =  
         { new Interpreter with 
-            member x.Interpret<'t,'r> (statement:Statement<'t,'r>) : 'r= 
+            member x.Interpret<'t,'r> (statement:Statement<'t,Job<'r>>) : Job<'r> = 
                 let mkTable () =
                     Api.mkTable noMapping session
                 Interpreter.execute mkTable statement }

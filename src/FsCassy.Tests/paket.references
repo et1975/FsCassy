@@ -1,6 +1,6 @@
 FSharp.Core
 CassandraCSharpDriver
-group Tests
+NUnit3TestAdapter
 Nunit
 Unquote
-
+Microsoft.NET.Test.Sdk

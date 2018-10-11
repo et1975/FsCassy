@@ -66,4 +66,8 @@ module Api =
     let mkTable mappingConfiguration = 
         memoize (fun (session:ISession) -> Table<'t>(session,mappingConfiguration))
 
-
+/// Interpreter interface that makes it possible to use the same instance of an interpreter with different type parameters
+/// from within the same function.
+/// See http://stackoverflow.com/questions/42598677/what-is-the-best-way-to-pass-generic-function-that-resolves-to-multiple-types
+type Interpreter =
+    abstract member Interpret<'t,'r> : Statement<'t,Computation<'r>> -> Computation<'r>

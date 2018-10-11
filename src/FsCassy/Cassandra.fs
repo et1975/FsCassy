@@ -5,7 +5,7 @@ open System.Linq
 open System.Linq.Expressions
 open FsCassy
 
-module Async =
+module internal Async =
     open System
     open System.Threading.Tasks
 

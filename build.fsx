@@ -16,26 +16,10 @@ open System.IO
 open SourceLink
 #endif
 
-// --------------------------------------------------------------------------------------
-// START TODO: Provide project-specific details below
-// --------------------------------------------------------------------------------------
-
-// Information about the project are used
-//  - for version and project name in generated AssemblyInfo file
-//  - by the generated NuGet package
-//  - to run tests and to publish documentation on GitHub gh-pages
-//  - for documentation, you also need to edit info in "docs/tools/generate.fsx"
-
-// The name of the project
-// (used by attributes in AssemblyInfo, name of a NuGet package and directory in 'src')
 let project = "FsCassy"
 
-// Short summary of the project
-// (used as description in AssemblyInfo and as a short summary for NuGet package)
 let summary = "Functional F# API for Cassandra"
 
-// Longer description of the project
-// (used as a description for NuGet package; line breaks are automatically cleaned up)
 let description = "Functional F# API for Cassandra"
 
 // List of author names (for NuGet package)
@@ -74,7 +58,7 @@ let assemblyInfo =
       "PackageIconUrl", gitRaw + "/master/docs/files/img/logo.png"
       "PackageLicenseUrl", gitRaw + "/master/docs/files/LICENSE.md" ]
 
-let dotnetcliVersion = "2.0.0"
+let dotnetcliVersion = "2.1.401"
 
 let mutable dotnetExePath = "dotnet"
 
@@ -92,9 +76,15 @@ let runDotnet workingDir args =
 
 
 Target "Clean" (fun _ ->
-    CleanDirs ["docs/output"; "build_output"]
-    !! "src/**/*.??proj"
-    |> Seq.iter ((sprintf "clean %s") >> runDotnet ".")
+    let dirs = { BaseDirectory = Path.GetFullPath "."
+                 Includes = !! "src/**/*.??proj"
+                            |> Seq.map Path.GetDirectoryName
+                            |> Seq.collect (fun n -> [Path.Combine(n,"bin"); Path.Combine(n,"obj")] )
+                            |> List.ofSeq
+                 Excludes = [] }
+    dirs
+    ++ "docs/output"
+    |> Seq.iter (CleanDir)
 )
 
 Target "Restore" (fun _ ->
@@ -110,26 +100,15 @@ Target "Build" (fun _ ->
 
 // --------------------------------------------------------------------------------------
 // Run the unit tests using test runner
-let testAssemblies = "src/*.Tests/bin/**/*.Tests.dll"
 
 Target "TestsInteractive" (fun _ ->
-    !! testAssemblies
-    |> NUnit (fun p ->
-        { p with
-            DisableShadowCopy = true
-            IncludeCategory = "interactive"
-            TimeOut = TimeSpan.FromMinutes 20.
-            OutputFile = "build_output/TestResults.xml" })
+    !! "src/**/*Tests.??proj"
+    |> Seq.iter ((sprintf "test %s --filter  \"TestCategory=interactive\"") >> runDotnet ".")
 )
 
 Target "Tests" (fun _ ->
-    !! testAssemblies
-    |> NUnit (fun p ->
-        { p with
-            DisableShadowCopy = true
-            ExcludeCategory = "interactive"
-            TimeOut = TimeSpan.FromMinutes 20.
-            OutputFile = "build_output/TestResults.xml" })
+    !! "src/**/*Tests.??proj"
+    |> Seq.iter ((sprintf "test %s --filter  \"TestCategory!=interactive\"") >> runDotnet ".")
 )
 
 #if MONO
