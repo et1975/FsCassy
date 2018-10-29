@@ -23,7 +23,7 @@ let summary = "Functional F# API for Cassandra"
 let description = "Functional F# API for Cassandra"
 
 // List of author names (for NuGet package)
-let authors = [ "Prolucid" ]
+let authors = [ "et1975" ]
 
 // Tags for your project (for NuGet package)
 let tags = "F# Cassandra"
@@ -37,7 +37,7 @@ let configuration = "Release"
 
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted
-let gitOwner = "Prolucid"
+let gitOwner = "et1975"
 let gitHome = sprintf "https://github.com/%s" gitOwner
 
 // The name of the project on GitHub
@@ -281,7 +281,7 @@ Target "AddLangDocs" (fun _ ->
 Target "ReleaseDocs" (fun _ ->
     let tempDocsDir = "temp/gh-pages"
     CleanDir tempDocsDir
-    Repository.cloneSingleBranch "" (gitHome + "/" + gitName + ".git") "gh-pages" tempDocsDir
+    Repository.cloneSingleBranch "" "git@github.com:et1975/FsCassy.git" "gh-pages" tempDocsDir
 
     CopyRecursive "docs/output" tempDocsDir true |> tracefn "%A"
     StageAll tempDocsDir

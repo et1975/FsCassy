@@ -11,14 +11,14 @@
 // (This is the original behaviour of ProjectScaffold prior to multi project support)
 let referenceBinaries = ["FsCassy.dll"]
 // Web site location for the generated documentation
-let website = "https://prolucid.github.io/FsCassy"
+let website = "https://et1975.github.io/FsCassy"
 
-let githubLink = "https://github.com/Prolucid/FsCassy"
+let githubLink = "https://github.com/et1975/FsCassy"
 
 // Specify more information about your project
 let info =
   [ "project-name", "FsCassy"
-    "project-author", "Prolucid"
+    "project-author", "et1975"
     "project-summary", "Functional F# API for Cassandra"
     "project-github", githubLink
     "project-nuget", "http://nuget.org/packages/FsCassy" ]

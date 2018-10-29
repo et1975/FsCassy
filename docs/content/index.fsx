@@ -70,12 +70,12 @@ The library is available under Apache license, which allows modification and
 redistribution for both commercial and non-commercial purposes. For more information see the 
 [License file][license] in the GitHub repository. 
 
-  [content]: https://github.com/Prolucid/FsCassy/tree/master/docs/content
-  [gh]: https://github.com/Prolucid/FsCassy
-  [issues]: https://github.com/Prolucid/FsCassy/issues
-  [readme]: https://github.com/Prolucid/FsCassy/blob/master/README.md
-  [license]: https://github.com/Prolucid/FsCassy/blob/master/LICENSE.md
+  [content]: https://github.com/et1975/FsCassy/tree/master/docs/content
+  [gh]: https://github.com/et1975/FsCassy
+  [issues]: https://github.com/et1975/FsCassy/issues
+  [readme]: https://github.com/et1975/FsCassy/blob/master/README.md
+  [license]: https://github.com/et1975/FsCassy/blob/master/LICENSE.md
 
 
-Copyright 2017 Prolucid Technologies Inc
+Copyright 2017 et1975 Technologies Inc
 *)

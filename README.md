@@ -1,4 +1,4 @@
-FsCassy [![Windows Build](https://ci.appveyor.com/api/projects/status/8v3ox0ha8im7dgnt?svg=true)](https://ci.appveyor.com/project/et1975/FsCassy) [![Mono/OSX build](https://travis-ci.org/Prolucid/FsCassy.svg?branch=master)](https://travis-ci.org/Prolucid/FsCassy) [![NuGet version](https://badge.fury.io/nu/FsCassy.svg)](https://badge.fury.io/nu/FsCassy)
+FsCassy [![Windows Build](https://ci.appveyor.com/api/projects/status/8v3ox0ha8im7dgnt?svg=true)](https://ci.appveyor.com/project/et1975/FsCassy) [![Mono/OSX build](https://travis-ci.org/et1975/FsCassy.svg?branch=master)](https://travis-ci.org/et1975/FsCassy) [![NuGet version](https://badge.fury.io/nu/FsCassy.svg)](https://badge.fury.io/nu/FsCassy)
 =======
 
 FsCassy offers several improvements over the official .NET driver:
