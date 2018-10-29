@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
-    <title>Clause - FsCassy</title>
+    <title>ExpressionTranslator - FsCassy</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="description" content=""/>
     <meta name="author" content="et1975"/>
@@ -35,11 +35,14 @@
 
 
 
-<h1>Clause</h1>
+<h1>ExpressionTranslator</h1>
 <p>
   <span>Namespace: FsCassy</span><br />
 </p>
 <div class="xmldoc">
+<p>Converts F# record updates into C#-like property assignments that
+the .NET driver expects</p>
+
 </div>
 
 <!-- Render nested types and modules, if there are any -->
@@ -53,19 +56,24 @@
       <tr>
         <td class="member-name">
 
-          <code onmouseout="hideTip(event, '1', 1)" onmouseover="showTip(event, '1', 1)">
-            map f _arg1
+          <code onmouseout="hideTip(event, '2', 2)" onmouseover="showTip(event, '2', 2)">
+            translate x
           </code>
-          <div class="tip" id="1">
-            <strong>Signature:</strong> f:(&#39;?7729 -&gt; &#39;?7730) -&gt; _arg1:Clause&lt;&#39;?7731,&#39;?7729&gt; -&gt; Clause&lt;&#39;?7731,&#39;?7730&gt;<br />
-                          <strong>Type parameters:</strong> '?7729, '?7730, '?7731          </div>
+          <div class="tip" id="2">
+            <strong>Signature:</strong> x:(type) -&gt; (type)<br />
+                          <strong>Type parameters:</strong> 'T          </div>
         </td>
         <td class="xmldoc">
-            <a href="https://github.com/et1975/FsCassy/tree/master/src/FsCassy/Language.fs#L62-62" class="github-link">
+            <a href="https://github.com/et1975/FsCassy/tree/master/src/FsCassy/Util.fs#L19-19" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
-          
+          <p>translate f# record init syntax tree into class property init tree:
+r -&gt; v1 -&gt; v5 ... invoke(v5).invoke(v1)
+into:
+new { prop1 = v1, prop5 = v5 }</p>
+
+
         </td>
       </tr>
     </tbody>
