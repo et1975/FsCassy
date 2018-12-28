@@ -30,7 +30,7 @@ module Interpreter =
             | (:? ConstantExpression as ce), (:? MemberExpression as me) -> [ me.Member.Name, ce.Value ]
 
             | (:? UnaryExpression as ue), (:? ConstantExpression as ce)
-            | (:? ConstantExpression as ce), (:? UnaryExpression as ue) -> (ue.Operand |> unbox<MemberExpression>, ce) |> parseMemberValues // [ (unbox<MemberExpression> ue.Operand).Member.Name, ce.Value ]
+            | (:? ConstantExpression as ce), (:? UnaryExpression as ue) -> (ue.Operand |> unbox<MemberExpression>, ce) |> parseMemberValues
 
             | e1, e2 -> failwith <| sprintf "Unsupported binary expression: %O %O" e1 e2
 
