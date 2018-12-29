@@ -1,3 +1,6 @@
+#### 1.1.1 - Dec 2018
+* InMem support for upserts by @2sComplement
+
 #### 1.1.0 - Nov 2018
 * Hopac update
 
