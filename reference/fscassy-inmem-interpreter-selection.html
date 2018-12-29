@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
-    <title>Statement<'t, 'r> - FsCassy</title>
+    <title>Selection - FsCassy</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="description" content=""/>
     <meta name="author" content="et1975"/>
@@ -35,30 +35,34 @@
 
 
 
-<h1>Statement<'t, 'r></h1>
+<h1>Selection</h1>
 <p>
   <span>Namespace: FsCassy</span><br />
+  <span>Parent Module: <a href="fscassy-inmem-interpreter.html">Interpreter</a></span>
 </p>
 <div class="xmldoc">
 </div>
-  <h3>Union Cases</h3>
+
+<!-- Render nested types and modules, if there are any -->
+
+  <h3>Functions and values</h3>
   <table class="table table-bordered member-list">
     <thead>
-      <tr><td>Union Case</td><td>Description</td></tr>
+      <tr><td>Function or value</td><td>Description</td></tr>
     </thead>
     <tbody>
       <tr>
         <td class="member-name">
 
-          <code onmouseout="hideTip(event, '52', 52)" onmouseover="showTip(event, '52', 52)">
-            Clause(Clause&lt;&#39;t,Statement&lt;&#39;t,&#39;r&gt;&gt;)
+          <code onmouseout="hideTip(event, '4', 4)" onmouseover="showTip(event, '4', 4)">
+            existing _arg1
           </code>
-          <div class="tip" id="52">
-            <strong>Signature:</strong> Clause&lt;&#39;t,Statement&lt;&#39;t,&#39;r&gt;&gt;<br />
-                      </div>
+          <div class="tip" id="4">
+            <strong>Signature:</strong> _arg1:Selection&lt;&#39;?7652&gt; -&gt; (int * &#39;?7652) option<br />
+                          <strong>Type parameters:</strong> '?7652          </div>
         </td>
         <td class="xmldoc">
-            <a href="https://github.com/et1975/FsCassy/tree/master/src/FsCassy/Language.fs#L57-57" class="github-link">
+            <a href="https://github.com/et1975/FsCassy/tree/master/src/FsCassy/InMem.fs#L16-16" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
@@ -68,48 +72,73 @@
       <tr>
         <td class="member-name">
 
-          <code onmouseout="hideTip(event, '53', 53)" onmouseover="showTip(event, '53', 53)">
-            Exec(&#39;r)
+          <code onmouseout="hideTip(event, '5', 5)" onmouseover="showTip(event, '5', 5)">
+            filterExistingIndex f _arg1
           </code>
-          <div class="tip" id="53">
-            <strong>Signature:</strong> &#39;r<br />
-                      </div>
+          <div class="tip" id="5">
+            <strong>Signature:</strong> f:(int -&gt; bool) -&gt; _arg1:Selection&lt;&#39;?7656&gt; -&gt; bool<br />
+                          <strong>Type parameters:</strong> '?7656          </div>
         </td>
         <td class="xmldoc">
-            <a href="https://github.com/et1975/FsCassy/tree/master/src/FsCassy/Language.fs#L58-58" class="github-link">
+            <a href="https://github.com/et1975/FsCassy/tree/master/src/FsCassy/InMem.fs#L18-18" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
           
         </td>
       </tr>
-    </tbody>
-  </table>
-  <h3>Static members</h3>
-  <table class="table table-bordered member-list">
-    <thead>
-      <tr><td>Static member</td><td>Description</td></tr>
-    </thead>
-    <tbody>
       <tr>
         <td class="member-name">
 
-          <code onmouseout="hideTip(event, '54', 54)" onmouseover="showTip(event, '54', 54)">
-            ( &gt;&gt;= )(x, f)
+          <code onmouseout="hideTip(event, '6', 6)" onmouseover="showTip(event, '6', 6)">
+            filterExistingValue f _arg1
           </code>
-          <div class="tip" id="54">
-            <strong>Signature:</strong> (x:Statement&lt;&#39;t,&#39;?7614&gt; * f:(&#39;?7614 -&gt; Statement&lt;&#39;t,&#39;?7615&gt;)) -&gt; Statement&lt;&#39;t,&#39;?7615&gt;<br />
-                      </div>
+          <div class="tip" id="6">
+            <strong>Signature:</strong> f:(&#39;?7654 -&gt; bool) -&gt; _arg1:Selection&lt;&#39;?7654&gt; -&gt; bool<br />
+                          <strong>Type parameters:</strong> '?7654          </div>
         </td>
         <td class="xmldoc">
-            <a href="https://github.com/et1975/FsCassy/tree/master/src/FsCassy/Language.fs#L143-143" class="github-link">
+            <a href="https://github.com/et1975/FsCassy/tree/master/src/FsCassy/InMem.fs#L17-17" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
-          <p>Compose statement <code>x</code> with the statement returned by <code>f</code></p>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
 
+          <code onmouseout="hideTip(event, '7', 7)" onmouseover="showTip(event, '7', 7)">
+            iterExisting f _arg1
+          </code>
+          <div class="tip" id="7">
+            <strong>Signature:</strong> f:(int * &#39;?7661 -&gt; unit) -&gt; _arg1:Selection&lt;&#39;?7661&gt; -&gt; unit<br />
+                          <strong>Type parameters:</strong> '?7661          </div>
+        </td>
+        <td class="xmldoc">
+            <a href="https://github.com/et1975/FsCassy/tree/master/src/FsCassy/InMem.fs#L20-20" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
 
-              <p>CompiledName: <code>op_GreaterGreaterEquals</code></p>
+          <code onmouseout="hideTip(event, '8', 8)" onmouseover="showTip(event, '8', 8)">
+            map f _arg1
+          </code>
+          <div class="tip" id="8">
+            <strong>Signature:</strong> f:(&#39;?7658 -&gt; &#39;?7659) -&gt; _arg1:Selection&lt;&#39;?7658&gt; -&gt; Selection&lt;&#39;?7659&gt;<br />
+                          <strong>Type parameters:</strong> '?7658, '?7659          </div>
+        </td>
+        <td class="xmldoc">
+            <a href="https://github.com/et1975/FsCassy/tree/master/src/FsCassy/InMem.fs#L19-19" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          
         </td>
       </tr>
     </tbody>
