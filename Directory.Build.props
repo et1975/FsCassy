@@ -1,0 +1,15 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<PropertyGroup>
+<Description>Functional F# API for Cassandra</Description>
+<PackageProjectUrl>https://github.com/et1975/FsCassy</PackageProjectUrl>
+<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+<RepositoryUrl>https://github.com/et1975/FsCassy.git</RepositoryUrl>
+<PackageReleaseNotes>Updated for .NET 6</PackageReleaseNotes>
+<PackageTags>fsharp;cassandra</PackageTags>
+<Authors>et1975</Authors>
+<Version>2.0.0</Version>
+</PropertyGroup>
+<ItemGroup>
+<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
+</ItemGroup>
+</Project>

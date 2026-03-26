@@ -5,13 +5,13 @@ open System.Linq
 open System.Linq.Expressions
 open FsCassy
 open Hopac
+open System.Threading.Tasks
 
 module Job =
-    let inline await t = t |> (Job.awaitTask >> Job.Ignore)  
+    let inline await (t: Task) : Job<unit> = Job.awaitUnitTask t
 
 /// Executes the statements using Cassandra Table and Mapper APIs
 module Interpreter =
-    open System.Threading.Tasks
     open Cassandra
     open Cassandra.Data.Linq
     open Cassandra.Mapping
@@ -85,27 +85,27 @@ module Interpreter =
                 t.Insert item :> CqlCommand |> (Command >> tuple next >> recurse)
             
             | Clause(Execute(mkNext)), Command c ->
-                let next = c.ExecuteAsync() |> Job.await |> mkNext
+                let next = (c.ExecuteAsync() :> Task) |> Job.await |> mkNext
                 recurse (next,Executing) 
             
             | Clause(Count(mkNext)), Query q -> 
-                let next = q.Count().ExecuteAsync |> Job.fromTask |> mkNext
+                let next = q.Count().ExecuteAsync() |> Job.awaitTask |> mkNext
                 recurse (next,Executing) 
             
             | Clause(Read(mkNext)), Query q -> 
-                let next = q.ExecuteAsync |> Job.fromTask |> mkNext
+                let next = q.ExecuteAsync() |> Job.awaitTask |> mkNext
                 recurse (next,Executing) 
             
             | Clause(Find(mkNext)), Query q -> 
                 let next = job {
-                                let! i = q.FirstOrDefault().ExecuteAsync |> Job.fromTask
+                                let! i = q.FirstOrDefault().ExecuteAsync() |> Job.awaitTask
                                 if Object.ReferenceEquals(i, null) then return None
                                 else return Some(i)
                            } |> mkNext
                 recurse (next,Executing) 
             
             | Clause(Execute(mkNext)), Statement cql ->
-                let next = mapper.ExecuteAsync cql |> Job.awaitUnitTask |> mkNext
+                let next = mapper.ExecuteAsync cql |> Job.await |> mkNext
                 recurse (next,Executing) 
             
             | Clause(Read(mkNext)), Statement cql -> 
@@ -114,7 +114,7 @@ module Interpreter =
             
             | Clause(Find(mkNext)), Statement cql -> 
                 let next = job {
-                                let! i = mapper.FirstOrDefaultAsync<'t> cql |> Job.awaitTask
+                                let! (i: 't) = mapper.FirstOrDefaultAsync<'t>(cql) |> Job.awaitTask
                                 if Object.ReferenceEquals(i, null) then return None
                                 else return Some(i)
                            } |> mkNext

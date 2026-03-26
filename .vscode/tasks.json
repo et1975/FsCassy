@@ -1,35 +1,37 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
-    "version": "0.1.0",
-    "windows": {
-        "command": "build"
-    },
-    "linux": {
-        "command": "./build.sh"
-    },
-    "osx": {
-        "command": "./build.sh"
-    },
-    "isShellCommand": true,
-    "showOutput": "always",
+    "version": "2.0.0",
     "tasks": [
         {
-            "taskName": "doc",
-            "args": ["GenerateDocs"],
-            "suppressTaskName": true
+            "label": "doc",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "fsi", "build.fsx", "GenerateDocs"
+            ],
+            "problemMatcher": []
         },
         {
-            "taskName": "build",
-            "args": ["Incremental"],
-            "isBuildCommand": true,
-            "suppressTaskName": true
+            "label": "build",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "fsi", "build.fsx", "Build"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "_id": "build",
+                "isDefault": false
+            }
         },
         {
-            "taskName": "watch",
-            "args": ["Watch"],
+            "label": "watch",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "fsi", "build.fsx", "WatchDocs"
+            ],
             "isBackground": true,
-            "suppressTaskName": true
-        }    
+            "problemMatcher": []
+        }
     ]
 }

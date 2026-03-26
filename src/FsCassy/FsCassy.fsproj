@@ -1,12 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <DocumentationFile>obj/FsCassy.XML</DocumentationFile>
-    <PackageTags>fsharp;cassandra</PackageTags>
+    <TargetFramework>net6.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="paket.references" />
     <Compile Include="Prelude.fs" />
     <Compile Include="Language.fs" />
     <Compile Include="Printer.fs" />
@@ -14,5 +11,7 @@
     <Compile Include="Cassandra.fs" />
     <Compile Include="InMem.fs" />
   </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+  <ItemGroup>
+    <PackageReference Include="CassandraCSharpDriver" Version="3.*" />
+  </ItemGroup>
 </Project>
